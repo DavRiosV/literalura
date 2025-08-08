@@ -7,22 +7,31 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class ConsumoAPI {
+
+    private final HttpClient client;
+
+    public ConsumoAPI() {
+        this.client = HttpClient.newHttpClient();
+    }
+
     public String obtenerDatos(String url) {
-        HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
+                .GET()
                 .build();
-        HttpResponse<String> response = null;
-        try {
-            response = client
-                    .send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
 
-        String json = response.body();
-        return json;
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Validar el código de estado HTTP
+            if (response.statusCode() != 200) {
+                throw new RuntimeException("Error en la solicitud. Código HTTP: " + response.statusCode());
+            }
+
+            return response.body();
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Error al consumir la API: " + e.getMessage(), e);
+        }
     }
 }
