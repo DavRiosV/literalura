@@ -12,13 +12,36 @@ public class Principal {
         Scanner teclado = new Scanner(System.in);
         LiteraturaService literaturaService = new LiteraturaService();
 
-        System.out.println("🔎 Búsqueda de libros");
-        System.out.print("Ingrese el título del libro: ");
-        String titulo = teclado.nextLine();
+        int opcion;
+        do {
+            System.out.println("\n===== 📚 MENÚ LITERALURA =====");
+            System.out.println("1️⃣  Buscar libro por título");
+            System.out.println("2️⃣  Mostrar catálogo de libros");
+            System.out.println("0️⃣  Salir");
+            System.out.print("Seleccione una opción: ");
 
-        literaturaService.buscarLibrosPorTitulo(titulo);
+            while (!teclado.hasNextInt()) { // Evita que el usuario ponga texto en vez de número
+                System.out.print("❌ Opción inválida. Ingrese un número: ");
+                teclado.next();
+            }
+            opcion = teclado.nextInt();
+            teclado.nextLine(); // limpiar buffer
 
-        System.out.println("\n📋 Mostrando catálogo actual:");
-        literaturaService.mostrarCatalogo();
+            switch (opcion) {
+                case 1:
+                    System.out.print("🔎 Ingrese el título del libro: ");
+                    String titulo = teclado.nextLine();
+                    literaturaService.buscarLibrosPorTitulo(titulo);
+                    break;
+                case 2:
+                    literaturaService.mostrarCatalogo();
+                    break;
+                case 0:
+                    System.out.println("Saliendo del programa. ¡Hasta luego!");
+                    break;
+                default:
+                    System.out.println("Opción no válida. Intente nuevamente.");
+            }
+        } while (opcion != 0);
     }
 }
