@@ -3,16 +3,22 @@ package com.aluracursos.literalura;
 import com.aluracursos.literalura.model.Datos;
 import com.aluracursos.literalura.service.ConsumoAPI;
 import com.aluracursos.literalura.service.ConvierteDatos;
+import com.aluracursos.literalura.service.LiteraturaService;
+
+import java.util.Scanner;
 
 public class Principal {
     public static void main(String[] args) {
-        ConsumoAPI consumoAPI = new ConsumoAPI();
-        ConvierteDatos conversor = new ConvierteDatos();
+        Scanner teclado = new Scanner(System.in);
+        LiteraturaService literaturaService = new LiteraturaService();
 
-        String json = consumoAPI.obtenerDatos("https://gutendex.com/books/?search=dracula");
+        System.out.println("🔎 Búsqueda de libros");
+        System.out.print("Ingrese el título del libro: ");
+        String titulo = teclado.nextLine();
 
-        Datos datos = conversor.obtenerDatos(json, Datos.class);
+        literaturaService.buscarLibrosPorTitulo(titulo);
 
-        datos.getResults().forEach(System.out::println);
+        System.out.println("\n📋 Mostrando catálogo actual:");
+        literaturaService.mostrarCatalogo();
     }
 }

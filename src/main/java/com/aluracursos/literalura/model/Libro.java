@@ -48,8 +48,12 @@ public class Libro {
 
     @Override
     public String toString() {
-        return "📚 " + titulo + " | Idioma: " + (idiomas != null && !idiomas.isEmpty() ? idiomas.get(0) : "N/A")
-                + " | Descargas: " + numeroDescargas
-                + " | Autor: " + (authors != null && !authors.isEmpty() ? authors.get(0).getNombre() : "Desconocido");
+        String idioma = (idiomas != null && !idiomas.isEmpty()) ? idiomas.get(0) : "N/A";
+        String autor = (authors != null && !authors.isEmpty()) ? authors.get(0).getNombre() : "Desconocido";
+
+        return "📚 " + titulo +
+                " | Idioma: " + idioma +
+                " | Descargas: " + numeroDescargas +
+                " | Autor: " + autor;
     }
 }
