@@ -21,17 +21,17 @@ Permite buscar libros por título, almacenar autores y libros, filtrar por idiom
 ## 📂 Estructura del proyecto
 
 src
-└── main
-├── java
-│ └── com.aluracursos.literalura
-│ └──dto 
-│ ├── model # Entidades JPA: Libro, Autor
-│ ├── repository # Interfaces JpaRepository
-│ ├── service # Lógica de negocio
-│ ├── Principal.java
-│ └── LiteraturaApplication.java
-└── resources
-├── application.properties
+- main
+- java
+- com.aluracursos.literalura
+- dto 
+- model # Entidades JPA: Libro, Autor
+- repository # Interfaces JpaRepository
+- service # Lógica de negocio
+- Principal.java
+- LiteraturaApplication.java
+- resources
+- application.properties
 
 
 ## 🛠 Funcionalidades
