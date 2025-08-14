@@ -61,7 +61,7 @@ public class Libro {
         String idioma = (idiomas != null && !idiomas.isEmpty()) ? idiomas.get(0) : "N/A";
         String autorNombre = (autor != null) ? autor.getNombre() : "Desconocido";
 
-        return "📚 " + titulo +
+        return  titulo +
                 " | Idioma: " + idioma +
                 " | Descargas: " + numeroDescargas +
                 " | Autor: " + autorNombre;
