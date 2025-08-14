@@ -13,16 +13,15 @@ import java.util.stream.Collectors;
 
 @Service
 public class CatalogoService {
-    private ConsumoAPI consumoAPI = new ConsumoAPI();
-    private ConvierteDatos conversor = new ConvierteDatos();
-    private List<Libro> catalogo = new ArrayList<>();
-
 
     @Autowired
     private LibroRepository libroRepository;
 
     @Autowired
     private AutorRepository autorRepository;
+
+    private ConsumoAPI consumoAPI = new ConsumoAPI();
+    private ConvierteDatos conversor = new ConvierteDatos();
 
     public void buscarLibroPorTitulo(String titulo) {
         String tituloNormalizado = quitarAcentos(titulo.trim().toLowerCase());
@@ -36,32 +35,55 @@ public class CatalogoService {
             return;
         }
 
-        Libro libroApi = datos.getResults().get(0);
-        Autor autor = libroApi.getAutor().get(0);
+        Libro libroApi = datos.getResults().get(0); // Solo tomamos el primero
+        Autor autorApi = libroApi.getAuthor().isEmpty() ? null : libroApi.getAuthors().get(0);
 
-        // Guardar autor si no existe
-        Autor autorGuardado = autorRepository.save(autor);
+        if (autorApi == null) {
+            System.out.println("⚠ El libro no tiene autor registrado, no se puede guardar.");
+            return;
+        }
 
-        // Guardar libro
-        Libro libro = new Libro(libroApi.getTitulo(), libroApi.getIdiomas().get(0), libroApi.getNumeroDescargas(), autorGuardado);
-        libroRepository.save(libro);
+        // Buscar si el autor ya existe en la BD
+        Autor autorExistente = autorRepository.findByNombreIgnoreCase(autorApi.getNombre())
+                .orElseGet(() -> {
+                    Autor nuevoAutor = new Autor(
+                            autorApi.getNombre(),
+                            autorApi.getFechaNacimiento(),
+                            autorApi.getFechaFallecimiento()
+                    );
+                    return autorRepository.save(nuevoAutor);
+                });
 
-        System.out.println("✅ Libro agregado a la base de datos: " + libro);
+        // Verificar si el libro ya está guardado
+        boolean libroYaExiste = libroRepository.existsByTituloIgnoreCase(libroApi.getTitulo());
+        if (libroYaExiste) {
+            System.out.println("⚠ El libro ya está en la base de datos.");
+            return;
+        }
+
+        // Crear y guardar el nuevo libro
+        Libro nuevoLibro = new Libro(
+                libroApi.getTitulo(),
+                libroApi.getIdiomas(),
+                libroApi.getNumeroDescargas(),
+                autorExistente
+        );
+        libroRepository.save(nuevoLibro);
+
+        System.out.println("✅ Libro agregado al catálogo: " + nuevoLibro);
     }
 
     public void listarTodosLosLibros() {
-        if (catalogo.isEmpty()) {
+        List<Libro> libros = libroRepository.findAll();
+        if (libros.isEmpty()) {
             System.out.println("⚠ No hay libros en el catálogo.");
             return;
         }
-        catalogo.forEach(System.out::println);
+        libros.forEach(System.out::println);
     }
 
     public void listarLibrosPorIdioma(String idioma) {
-        List<Libro> filtrados = catalogo.stream()
-                .filter(l -> !l.getIdiomas().isEmpty() &&
-                        l.getIdiomas().get(0).equalsIgnoreCase(idioma))
-                .collect(Collectors.toList());
+        List<Libro> filtrados = libroRepository.findByIdiomasContainingIgnoreCase(idioma);
 
         if (filtrados.isEmpty()) {
             System.out.println("⚠ No se encontraron libros en ese idioma.");
@@ -70,43 +92,28 @@ public class CatalogoService {
         filtrados.forEach(System.out::println);
     }
 
+    public void listarAutores() {
+        List<Autor> autores = autorRepository.findAll();
+        if (autores.isEmpty()) {
+            System.out.println("⚠ No hay autores en la base de datos.");
+            return;
+        }
+        autores.forEach(System.out::println);
+    }
+
+    public void listarAutoresVivosEnAnio(int anio) {
+        List<Autor> autoresVivos = autorRepository.findAutoresVivosEnAnio(anio);
+        if (autoresVivos.isEmpty()) {
+            System.out.println("⚠ No se encontraron autores vivos en el año " + anio);
+            return;
+        }
+        autoresVivos.forEach(System.out::println);
+    }
+
+    // Elimina acentos y normaliza texto
     private String quitarAcentos(String texto) {
         String normalizado = Normalizer.normalize(texto, Normalizer.Form.NFD);
         Pattern patron = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
         return patron.matcher(normalizado).replaceAll("");
     }
-
-    public void listarAutores() {
-        if (catalogo.isEmpty()) {
-            System.out.println("⚠ No hay libros en el catálogo.");
-            return;
-        }
-
-        Set<Autor> autoresUnicos = catalogo.stream()
-                .flatMap(libro -> libro.get().stream())
-                .collect(Collectors.toSet());
-
-        autoresUnicos.forEach(System.out::println);
-    }
-
-    public void listarAutoresVivosEnAnio(int anio) {
-        if (catalogo.isEmpty()) {
-            System.out.println("⚠ No hay libros en el catálogo.");
-            return;
-        }
-
-        Set<Autor> autoresVivos = catalogo.stream()
-                .flatMap(libro -> libro.getAuthors().stream())
-                .filter(autor -> autor.getFechaNacimiento() != null && autor.getFechaNacimiento() <= anio &&
-                        (autor.getFechaFallecimiento() == null || autor.getFechaFallecimiento() >= anio))
-                .collect(Collectors.toSet());
-
-        if (autoresVivos.isEmpty()) {
-            System.out.println("⚠ No se encontraron autores vivos en el año " + anio);
-            return;
-        }
-
-        autoresVivos.forEach(System.out::println);
-    }
-
 }
